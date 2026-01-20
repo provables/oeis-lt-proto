@@ -1,0 +1,6 @@
+name = "oeis-lt-proto"
+version = "0.1.0"
+defaultTargets = ["OEISLtProto"]
+
+[[lean_lib]]
+name = "OEISLtProto"
