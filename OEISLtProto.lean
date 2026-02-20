@@ -9,6 +9,10 @@ structure OEISContext where
   ctx : Core.Context
   state : Core.State
 
+inductive OEISError where
+  | JSONDecodeError (e : String)
+  | UserError (e : String)
+
 abbrev OEISM := ReaderT OEISContext IO
 
 -- Implement monad lift from IO -> EIO Myerror so the user can use IO inside OEISM (and
@@ -17,13 +21,19 @@ abbrev OEISM := ReaderT OEISContext IO
 abbrev PluginFunction := Σ input : Type, Σ _ : FromJson input, Σ output : Type, Σ _ : ToJson output,
   input → OEISM output
 
-structure Plugin where
+structure Plugin : Type where
   cmd : String
-  function : PluginFunction
+  function : Json → OEISM Json
 
-def mkPlugin {a b : Type} [FromJson a] [ToJson b] (cmd : String) (f : a → OEISM b) : Plugin := {
-  cmd,
-  function := ⟨ _, inferInstance, _, inferInstance, f ⟩
-}
+    -- let .ok w := FromJson.fromJson? inp |>.map (fun x => v.function x) |>.map (fun y => do
+    --   let z ← y
+    --   return ToJson.toJson z
+def mkPlugin {a b : Type} [FromJson a] [ToJson b] (cmd : String) (f : a → OEISM b)
+    : Plugin :=
+  let g (x : Json) := do
+    let .ok v := FromJson.fromJson? x |>.map f |>.map (fun y => do return ToJson.toJson (← y))
+      | throw <| IO.Error.userError "json failed"
+    v
+  ⟨cmd, g⟩
 
 -- Client provides a value `plugin : Plugin`.
