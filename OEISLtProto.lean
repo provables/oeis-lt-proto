@@ -1,6 +1,7 @@
 -- This module serves as the root of the `OeisLtProto` library.
 -- Import modules here that should be built as part of the library.
 import Lean
+import SQLite
 
 open Lean Elab
 
@@ -8,6 +9,7 @@ structure OEISContext where
   env : Environment
   ctx : Core.Context
   state : Core.State
+  db : SQLite
 
 inductive OEISError where
   | JSONDecodeError (e : String)

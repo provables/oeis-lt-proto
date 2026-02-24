@@ -2,5 +2,9 @@ name = "oeis-lt-proto"
 version = "0.1.0"
 defaultTargets = ["OEISLtProto"]
 
+[[require]]
+name = "leansqlite"
+git = "https://github.com/leanprover/leansqlite.git"
+
 [[lean_lib]]
 name = "OEISLtProto"
